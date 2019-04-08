@@ -6,87 +6,76 @@ from keras.layers import Dense, Activation
 
 class DataGenerator(keras.utils.Sequence):
     'Generates data for Keras'
-    def __init__(self, list_IDs, labels, batch_size=32, dim=(32,32,32), n_channels=1,
-                 n_classes=10, shuffle=True):
+    def __init__(self,list_IDs, batch_size=32, dim=(32,32,32), n_channels=1,
+                 n_classes=2, shuffle=True):
         'Initialization'
         self.dim = dim
-        self.batch_size = batch_size
-        self.labels = labels
         self.list_IDs = list_IDs
         self.n_channels = n_channels
         self.n_classes = n_classes
         self.shuffle = shuffle
         self.on_epoch_end()
-        self.length
+        self.length=0
 
     def __len__(self):
         'Denotes the number of batches per epoch'
-        return self.length
+        return len(self.list_IDs)
 
     def __getitem__(self, index):
         'Generate one batch of data'
         # Generate indexes of the batch
 
-
         # Generate data
-        X, y = self.__data_generation(str(index))
+        X, y = self.__data_generation(self.list_IDs[index])
 
         return X, y
 
-    def on_epoch_end(self):
-        'Updates indexes after each epoch'
-        self.indexes = np.arange(len(self.list_IDs))
-        if self.shuffle == True:
-            np.random.shuffle(self.indexes)
 
     def __data_generation(self, ID):
         'Generates data containing batch_size samples' # X : (n_samples, *dim, n_channels)
         # Initialization
-        X = np.empty((self.batch_size, self.dim, self.n_channels))
-        y = np.empty((self.batch_size), dtype=int)
 
-        X = np.load('data/' + ID + '.npz')
+        X = np.load('data/' + ID + '.npz')['arr_0']
+        X=X/255
         self.length=len(X)
 
-        y = np.load('labels/' + ID + '.npz')
+        y = np.load('labels/' + ID + '.npz')['arr_0']
+        y=y/255
 
         return X, keras.utils.to_categorical(y, num_classes=self.n_classes)
 
-# Parameters
-params = {'dim': (32,32,32),
-          'batch_size': 64,
-          'n_classes': 6,
-          'n_channels': 1,
-          'shuffle': True}
+if __name__ == '__main__':
+    # Parameters
+    params = {'dim': (9,9,3),
+              'batch_size': 64,
+              'n_classes': 2,
+              'n_channels': 1,
+              'shuffle': True}
 
-# Datasets
-train=[]
-for i in range(20):
-    train.append(i)
-test=[]
-for i in range(21,24):
-    test.append(i)
-labels = []
-for i in range(24):
-    labels.append(i)
+    # Datasets
+    train=[]
+    for i in range(1,21):
+        train.append(str(i))
+    test=[]
+    for i in range(21,25):
+        test.append(str(i))
 
-array=(np.load('data/0.npz'))
-print(np.array(array['arr_0']).shape)
+    print(train,test)
 
 
 
-# # Generators
-# training_generator = DataGenerator(train, labels, **params)
-# validation_generator = DataGenerator(test, labels, **params)
-#
-# # Design model
-# model = Sequential()
-# model.add(Dense(81, activation='sigmoid', input_dim=81))
-# model.add(Dense(2, activation='sigmoid'))
-# model.compile()
-#
-# # Train model on dataset
-# model.fit_generator(generator=training_generator,
-#                     validation_data=validation_generator,
-#                     use_multiprocessing=True,
-#                     workers=6)
+    # Generators
+    training_generator = DataGenerator(train,**params)
+    validation_generator = DataGenerator(test,**params)
+
+    # Design model
+    model = Sequential()
+    model.add(Dense(81, activation='sigmoid', input_shape=(9,9,3)))
+    model.add(Dense(1, activation='sigmoid'))
+    model.compile(loss='binary_crossentropy', optimizer='adam')
+
+    # Train model on dataset
+    model.fit_generator(generator=training_generator,
+                        validation_data=validation_generator,
+                        use_multiprocessing=True,
+                        workers=1)
