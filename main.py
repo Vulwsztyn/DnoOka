@@ -1,7 +1,7 @@
 import numpy as np
 import warnings
+import keras
 warnings.filterwarnings("ignore")
-
 from skimage.io import imread, imsave
 
 def podzialNaCzesci(img,res,n=9):
@@ -20,14 +20,16 @@ def podzialNaCzesci(img,res,n=9):
                 for b in range(-margines,n-margines,1):
                     wiersz.append(img[i+a][j+b])
                 czesc.append(wiersz)
-            if np.mean(czesc)>20:
+            if np.average(czesc)>0.1:
                 result.append(res[i][j])
-                czesci.append(czesc.copy())
-        if (i-margines)%100==0:
+                czesci.append(czesc)
+        if (i-margines)%100==0 and (i-margines)!=0:
             np.savez_compressed('segments/01_h/'+str(counter),np.array(czesci))
             np.savez_compressed('labels/01_h/' + str(counter), np.array(result))
-            counter = counter + 1
             czesci=[]
+            result=[]
+            counter = counter + 1
+            # czesci=[]
     np.savez_compressed('segments/01_h/' + str(counter), np.array(czesci))
     np.savez_compressed('labels/01_h/' + str(counter), np.array(result))
 
@@ -37,7 +39,24 @@ def toGrey(image,whichChannel):
             image[i][j]=image[i][j][whichChannel]
     return image
 
-image=imread('images/01_h.jpg')
-result=imread('results/01_h.tif')
-image=toGrey(image,1)
-podzialNaCzesci(image,result,9)
+
+# print("reading")
+# image=imread('images/01_h.jpg',as_gray=True)
+# result=imread('results/01_h.tif')
+#
+# print("podzieling")
+# podzialNaCzesci(image,result,9)
+
+train_images=np.load('segments/01_h/0.npz')['arr_0']
+train_labels=np.load('labels/01_h/0.npz')['arr_0']/255
+model = keras.Sequential([
+    keras.layers.Flatten(input_shape=(9, 9)),
+    keras.layers.Dense(128, activation='relu'),
+    keras.layers.Dense(1, activation='softmax')
+])
+
+model.compile(optimizer='adam',
+              loss='binary_crossentropy',
+              metrics=['accuracy'])
+
+model.fit(train_images, train_labels, epochs=1)
