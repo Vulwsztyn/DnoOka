@@ -2,10 +2,19 @@ import numpy as np
 import warnings
 import tensorflow as tf
 from tensorflow import keras
+from keras import backend as K
 
 warnings.filterwarnings("ignore")
 from skimage.io import imread, imsave
 
+def confusion(y_true, y_pred):
+    y_pred_pos = K.round(K.clip(y_pred, 0, 1))
+    y_pred_neg = 1 - y_pred_pos
+    y_pos = K.round(K.clip(y_true, 0, 1))
+    y_neg = 1 - y_pos
+    tp = K.sum(y_pos * y_pred_pos) / K.sum(y_pos)
+    tn = K.sum(y_neg * y_pred_neg) / K.sum(y_neg)
+    return tp
 
 def podzialNaCzesci(img, res,mask, n=9,ilePerPlik=288193):
     if n % 2 == 0:
@@ -66,7 +75,7 @@ if __name__ == '__main__':
             isTestSet=True
 
 
-    for i in range(1,24):
+    for i in range(1,2):
         print('wczytuje',i+1,'na 24')
         a = np.load('segments/01_h/'+str(i)+'.npz')['arr_0']
         b = np.load('labels/01_h/'+str(i)+'.npz')['arr_0'] / 255
@@ -86,7 +95,7 @@ if __name__ == '__main__':
 
     model = keras.Sequential([
         keras.layers.Flatten(input_shape=(9,9)),
-        keras.layers.Dense(128, activation=tf.nn.relu),
+        keras.layers.Dense(81, activation=tf.nn.relu),
         keras.layers.Dense(1, activation=tf.nn.softmax)
     ])
     print("compile model")
@@ -94,11 +103,13 @@ if __name__ == '__main__':
                   loss='binary_crossentropy',
                   metrics=['accuracy'])
     print("fit model")
-    model.fit(train_images, train_labels, epochs=10)
+    model.fit(train_images, train_labels, epochs=1)
     print("test model")
-    test_loss, test_acc = model.evaluate(test_images, test_labels)
 
-    print('Test accuracy:', test_acc)
+    predicted = np.array(model.predict_classes(test_images))
+    print(predicted)
+    # show the inputs and predicted outputs
+    print( np.sum(predicted))
 
     # print(type(train_images))
     # model = keras.Sequential([
