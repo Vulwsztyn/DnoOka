@@ -2,6 +2,7 @@ import numpy as np
 import warnings
 import tensorflow as tf
 from tensorflow import keras
+import os
 
 warnings.filterwarnings("ignore")
 from skimage.io import imread, imsave
@@ -31,6 +32,12 @@ def podzialNaCzesci(img, res,mask,numer,typ,n=9,ilePerPlik=288193):
                     result.append(res[i][j])
                     czesci.append(czesc)
         if len(czesci)>=ilePerPlik:
+            folder='segments/'+q+'_'+typ
+            if not os.path.exists(folder):
+                os.makedirs(folder)
+            folder='labels/'+q+'_'+typ
+            if not os.path.exists(folder):
+                os.makedirs(folder)
             np.savez_compressed('segments/'+q+'_'+typ+'/' + str(fileCounter), np.array(czesci))
             np.savez_compressed('labels/'+q+'_'+typ+'/' + str(fileCounter), np.array(result))
             czesci = []
