@@ -33,11 +33,6 @@ def podzialNaCzesci(img,res,n=9):
     np.savez_compressed('segments/01_h/' + str(counter), np.array(czesci))
     np.savez_compressed('labels/01_h/' + str(counter), np.array(result))
 
-def toGrey(image,whichChannel):
-    for i in range(len(image)):
-        for j in range(len(image[whichChannel])):
-            image[i][j]=image[i][j][whichChannel]
-    return image
 
 
 # print("reading")
