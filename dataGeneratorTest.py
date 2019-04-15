@@ -117,8 +117,8 @@ class DataGenerator(keras.utils.Sequence):
 
     def __data_generation(self, ID):
         # Generate data
-        X = np.load('segments/01_h/' + ID + '.npz')['arr_0']
-        y = np.load('labels/01_h/' + ID + '.npz')['arr_0'] / 255
+        X = np.load('segments/01_dr/' + ID + '.npz')['arr_0']
+        y = np.load('labels/01_dr/' + ID + '.npz')['arr_0'] / 255
         y=to_categorical(y)
         return X, y
 
@@ -157,9 +157,6 @@ if __name__ == '__main__':
 
     predicted = model.predict(test_images)
     # show the inputs and predicted outputs
-    for i in range(10000):
-         if 1==test_labels[i]:
-             print("X=%s, Predicted=%s, Expected=%s" % (test_images[i], predicted[i], test_labels[i]))
 
     predicted_class=[]
     for i in range(len(test_labels)):

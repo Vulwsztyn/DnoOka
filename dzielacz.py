@@ -2,6 +2,7 @@ import numpy as np
 import warnings
 import tensorflow as tf
 from tensorflow import keras
+from skimage import exposure
 import os
 
 warnings.filterwarnings("ignore")
@@ -52,11 +53,15 @@ def podzialNaCzesci(img, res,mask,numer,typ,n=9,ilePerPlik=288193):
     np.savez_compressed('labels/'+q+'_'+typ+'/' + str(fileCounter), np.array(result))
 
 
-def toGrey(image, whichChannel):
+def toGrey(image,whichChannel):
+    result=[]
     for i in range(len(image)):
+        segment=[]
         for j in range(len(image[whichChannel])):
-            image[i][j] = image[i][j][whichChannel]
-    return image
+            segment.append(image[i][j][whichChannel]/255)
+        result.append(segment)
+    return result
+
 
 
 
@@ -68,6 +73,10 @@ if __name__ == '__main__':
                 myZero = ""
             q=myZero + str(i)
             mask = imread('masks/' + q + '_' + j + '_mask.tif', as_grey=True)
-            image = imread('images/'+q+'_'+j+'.jpg', as_gray=True)
+            image = imread('images/'+q+'_'+j+'.jpg')
+            image = toGrey(image, 1)
+            image = np.array(image)
+            p1, p2 = np.percentile(image, (10, 100))
+            image = exposure.rescale_intensity(image, in_range=(p1, p2))
             result = imread('results/'+q+'_'+j+'.tif')
             podzialNaCzesci(image, result, mask,q,j,9)
