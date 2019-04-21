@@ -40,7 +40,7 @@ def podzialNaCzesci(img, res,mask,numer,typ,n=9,ilePerPlik=288193):
                 parameters.append(np.average(czesc))
                 parameters.append(np.mean(czesc))
                 parameters.append((np.sum(czesc) - img[i][j]) / ((n ** 2) - 1))
-                parameters.append(np.avg(czescR))
+                parameters.append(np.average(czescR))
 
                 if res[i][j]>0.5:
                     positive.append(parameters)
