@@ -26,16 +26,22 @@ def podzialNaCzesci(img, res,mask,numer,typ,n=9,ilePerPlik=288193):
         for j in range(margines, img.shape[1] - margines):
             if mask[i][j] > 0.0:
                 czesc = []
+                czescR=[]
                 for a in range(-margines, n - margines, 1):
                     wiersz = []
+                    wierszR=[]
                     for b in range(-margines, n - margines, 1):
                         wiersz.append(img[i + a][j + b])
+                        wierszR.append(res[i + a][j + b])
                     czesc.append(wiersz)
+                    czescR.append(wierszR)
                 parameters = []
                 parameters.append(img[i][j])
                 parameters.append(np.average(czesc))
                 parameters.append(np.mean(czesc))
                 parameters.append((np.sum(czesc) - img[i][j]) / ((n ** 2) - 1))
+                parameters.append(np.avg(czescR))
+
                 if res[i][j]>0.5:
                     positive.append(parameters)
                 else:
