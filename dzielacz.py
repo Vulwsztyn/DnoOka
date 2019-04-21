@@ -32,7 +32,7 @@ def podzialNaCzesci(img, res,mask,numer,typ,n=9,ilePerPlik=288193):
                     wierszR=[]
                     for b in range(-margines, n - margines, 1):
                         wiersz.append(img[i + a][j + b])
-                        wierszR.append(res[i + a][j + b])
+                        wierszR.append(res[i + a][j + b]/255)
                     czesc.append(wiersz)
                     czescR.append(wierszR)
                 parameters = []
@@ -42,7 +42,7 @@ def podzialNaCzesci(img, res,mask,numer,typ,n=9,ilePerPlik=288193):
                 parameters.append((np.sum(czesc) - img[i][j]) / ((n ** 2) - 1))
                 parameters.append(np.average(czescR))
 
-                if res[i][j]>0.5:
+                if res[i][j]/255>0.5:
                     positive.append(parameters)
                 else:
                     negative.append(parameters)
