@@ -115,6 +115,6 @@ if __name__ == '__main__':
             image = imread('images/'+q+'_'+j+'.jpg')
             image = toGrey(image, 1)
             image = np.array(image)
-            image = exposure.equalize_adapthist(image, clip_limit=0.03)
+            #image = exposure.equalize_adapthist(image, clip_limit=0.03)
             result = imread('results/'+q+'_'+j+'.tif')
             podzialNaCzesci(image, result, mask,q,j,27)
