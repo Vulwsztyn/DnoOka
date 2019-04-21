@@ -18,9 +18,11 @@ def podzialNaCzesci(img, res,mask,numer,typ,n=9,ilePerPlik=288193):
     czesci = []
     fileCounter = 0
     result = []
+    positive=[]
+    negative=[]
     for i in range(margines, img.shape[0] - margines):
         # print('i',i)
-        # print(i - margines, ' out of ', img.shape[0] - margines - margines)
+        print(i - margines, ' out of ', img.shape[0] - margines - margines)
         for j in range(margines, img.shape[1] - margines):
             if mask[i][j] > 0.0:
                 czesc = []
@@ -29,28 +31,59 @@ def podzialNaCzesci(img, res,mask,numer,typ,n=9,ilePerPlik=288193):
                     for b in range(-margines, n - margines, 1):
                         wiersz.append(img[i + a][j + b])
                     czesc.append(wiersz)
-                if np.average(czesc) > 0.1:
-                    result.append(res[i][j])
-                    czesci.append(czesc)
-        if len(czesci)>=ilePerPlik:
-            folder='segments/'+q+'_'+typ
-            if not os.path.exists(folder):
-                os.makedirs(folder)
-            folder='labels/'+q+'_'+typ
-            if not os.path.exists(folder):
-                os.makedirs(folder)
-            np.savez_compressed('segments/'+q+'_'+typ+'/' + str(fileCounter), np.array(czesci))
-            np.savez_compressed('labels/'+q+'_'+typ+'/' + str(fileCounter), np.array(result))
-            czesci = []
-            result = []
-            fileCounter+=1
-    i=-1
-    while len(czesci)<ilePerPlik:
-        czesci.append(czesci[i])
-        result.append(result[i])
-        i-=1
-    np.savez_compressed('segments/'+q+'_'+typ+'/' + str(fileCounter), np.array(czesci))
-    np.savez_compressed('labels/'+q+'_'+typ+'/' + str(fileCounter), np.array(result))
+                parameters = []
+                parameters.append(img[i][j])
+                parameters.append(np.average(czesc))
+                parameters.append(np.mean(czesc))
+                parameters.append((np.sum(czesc) - img[i][j]) / ((n ** 2) - 1) / img[i][j])
+                if res[i][j]>0.5:
+                    positive.append(parameters)
+                else:
+                    negative.append(parameters)
+            if len(positive)+len(negative)>=ilePerPlik:
+                np.random.shuffle(negative)
+                np.random.shuffle(positive)
+                if len(positive)<len(negative):
+                    tmplen=len(positive)
+                else:
+                    tmplen =len(negative)
+                for g in range(tmplen):
+                    czesci.append(positive[g])
+                    result.append(1)
+                    czesci.append(negative[g])
+                    result.append(0)
+                folder='segments/'+q+'_'+typ
+                if not os.path.exists(folder):
+                    os.makedirs(folder)
+                folder='labels/'+q+'_'+typ
+                if not os.path.exists(folder):
+                    os.makedirs(folder)
+                np.savez_compressed('segments/'+q+'_'+typ+'/' + str(fileCounter), np.array(czesci))
+                np.savez_compressed('labels/'+q+'_'+typ+'/' + str(fileCounter), np.array(result))
+                czesci = []
+                result = []
+                positive = []
+                negative = []
+                fileCounter+=1
+    np.random.shuffle(negative)
+    np.random.shuffle(positive)
+    if len(positive) < len(negative):
+        tmplen = len(positive)
+    else:
+        tmplen = len(negative)
+    for g in range(tmplen):
+        czesci.append(positive[g])
+        result.append(1)
+        czesci.append(negative[g])
+        result.append(0)
+    folder = 'segments/' + q + '_' + typ
+    if not os.path.exists(folder):
+        os.makedirs(folder)
+    folder = 'labels/' + q + '_' + typ
+    if not os.path.exists(folder):
+        os.makedirs(folder)
+    np.savez_compressed('segments/' + q + '_' + typ + '/' + str(fileCounter), np.array(czesci))
+    np.savez_compressed('labels/' + q + '_' + typ + '/' + str(fileCounter), np.array(result))
 
 
 def toGrey(image,whichChannel):
@@ -76,7 +109,6 @@ if __name__ == '__main__':
             image = imread('images/'+q+'_'+j+'.jpg')
             image = toGrey(image, 1)
             image = np.array(image)
-            p1, p2 = np.percentile(image, (10, 100))
-            image = exposure.rescale_intensity(image, in_range=(p1, p2))
+            image = exposure.equalize_adapthist(image, clip_limit=0.03)
             result = imread('results/'+q+'_'+j+'.tif')
-            podzialNaCzesci(image, result, mask,q,j,9)
+            podzialNaCzesci(image, result, mask,q,j,27)

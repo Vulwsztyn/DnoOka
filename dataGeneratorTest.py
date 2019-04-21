@@ -118,7 +118,7 @@ class DataGenerator(keras.utils.Sequence):
     def __data_generation(self, ID):
         # Generate data
         X = np.load('segments/01_dr/' + ID + '.npz')['arr_0']
-        y = np.load('labels/01_dr/' + ID + '.npz')['arr_0'] / 255
+        y = np.load('labels/01_dr/' + ID + '.npz')['arr_0']
         y=to_categorical(y)
         return X, y
 
@@ -126,8 +126,8 @@ class DataGenerator(keras.utils.Sequence):
 if __name__ == '__main__':
 
     train_images=[]
-    test_image=['1']
-    for i in range(2, 24):
+    test_image=['0']
+    for i in range(1, 9):
         train_images.append(str(i))
 
     params = {'batch_size': 1,
@@ -139,10 +139,9 @@ if __name__ == '__main__':
     validation_generator = DataGenerator(test_image, **params)
 
     model = keras.Sequential([
-        keras.layers.Flatten(input_shape=(9, 9)),
-        keras.layers.Dense(81, activation=tf.nn.sigmoid),
-        keras.layers.Dense(81, activation=tf.nn.sigmoid),
-        keras.layers.Dense(81, activation=tf.nn.sigmoid),
+        keras.layers.Flatten(input_shape=(5,)),
+        keras.layers.Dense(50, activation=tf.nn.sigmoid),
+        keras.layers.Dense(50, activation=tf.nn.sigmoid),
         keras.layers.Dense(2, activation=tf.nn.sigmoid)
     ])
     print("compile model")
@@ -152,8 +151,8 @@ if __name__ == '__main__':
     model.fit_generator(generator=training_generator,
                         validation_data=validation_generator, epochs=1)
     print("test model")
-    test_images = np.load('segments/01_h/1.npz')['arr_0']
-    test_labels=np.load('labels/01_h/1.npz')['arr_0'] / 255
+    test_images = np.load('segments/01_dr/1.npz')['arr_0']
+    test_labels=np.load('labels/01_dr/1.npz')['arr_0']
 
     predicted = model.predict(test_images)
     # show the inputs and predicted outputs
