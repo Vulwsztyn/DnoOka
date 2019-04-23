@@ -5,7 +5,7 @@ from tensorflow import keras
 from keras import backend as K
 from keras.utils import to_categorical
 from keras import optimizers
-import pandas as pd
+from numpy import genfromtxt
 
 
 warnings.filterwarnings("ignore")
@@ -117,8 +117,13 @@ class DataGenerator(keras.utils.Sequence):
 
     def __data_generation(self, ID):
         # Generate data
-        X = np.load('segments/01_dr/' + ID + '.npz')['arr_0']
-        y = np.load('labels/01_dr/' + ID + '.npz')['arr_0']
+        X=[]
+        print(ID)
+        temp = genfromtxt(ID, delimiter=';',names=True)
+        y = temp['DECYZJA']
+        for x in temp:
+            X.append([x[i] for i in range(len(x)-1)])
+        X=np.array(X)
         y=to_categorical(y)
         return X, y
 
@@ -126,48 +131,51 @@ class DataGenerator(keras.utils.Sequence):
 if __name__ == '__main__':
 
     train_images=[]
-    test_image=['0']
-    for i in range(1, 9):
-        train_images.append(str(i))
+    for i in range(1, 5):
+        for j in ['dr', 'h', 'g']:
+            myZero = '0'
+            if i >= 10:
+                myZero = ""
+            train_images.append('params/'+myZero+str(i)+'_'+str(j)+'.csv')
 
-    params = {'batch_size': 1,
+    test_images=train_images[-1]
+    train_images=train_images[:-1]
+    params = {'batch_size': 15,
               'n_classes': 2}
 
 
 
     training_generator = DataGenerator(train_images, **params)
-    validation_generator = DataGenerator(test_image, **params)
+    validation_generator = DataGenerator(test_images, **params)
 
     model = keras.Sequential([
-        keras.layers.Flatten(input_shape=(5,)),
-        keras.layers.Dense(50, activation=tf.nn.sigmoid),
-        keras.layers.Dense(50, activation=tf.nn.sigmoid),
+        keras.layers.Flatten(input_shape=(10,)),
         keras.layers.Dense(2, activation=tf.nn.sigmoid)
     ])
     print("compile model")
     model.compile(optimizer='sgd',loss='categorical_crossentropy',
-                  metrics=[recall])
+                  metrics=['accuracy'])
     print("fit model")
     model.fit_generator(generator=training_generator,
                         validation_data=validation_generator, epochs=1)
-    print("test model")
-    test_images = np.load('segments/01_dr/1.npz')['arr_0']
-    test_labels=np.load('labels/01_dr/1.npz')['arr_0']
-
-    predicted = model.predict(test_images)
-    # show the inputs and predicted outputs
-
-    predicted_class=[]
-    for i in range(len(test_labels)):
-        if predicted[i][0]<predicted[i][1]*2:
-            predicted_class.append(1)
-        else:
-            predicted_class.append(0)
-
-    y_actu = pd.Series(test_labels, name='Actual')
-    y_pred = pd.Series(predicted_class, name='Predicted')
-    df_confusion = pd.crosstab(y_actu, y_pred)
-
-
-    plot_confusion_matrix(df_confusion)
+    # print("test model")
+    # test_images = np.load('segments/01_dr/1.npz')['arr_0']
+    # test_labels=np.load('labels/01_dr/1.npz')['arr_0']
+    #
+    # predicted = model.predict(test_images)
+    # # show the inputs and predicted outputs
+    #
+    # predicted_class=[]
+    # for i in range(len(test_labels)):
+    #     if predicted[i][0]<predicted[i][1]*2:
+    #         predicted_class.append(1)
+    #     else:
+    #         predicted_class.append(0)
+    #
+    # y_actu = pd.Series(test_labels, name='Actual')
+    # y_pred = pd.Series(predicted_class, name='Predicted')
+    # df_confusion = pd.crosstab(y_actu, y_pred)
+    #
+    #
+    # plot_confusion_matrix(df_confusion)
 
