@@ -24,9 +24,10 @@ if __name__ == '__main__':
     print(names)
     for i in names[:-1]:
         for j in names[:-1]:
+            if j!=i:
                 x = data[i]
                 y = data[j]
-                plt.scatter(x, y, c=data['DECYZJA'],s=0.1)
+                plt.scatter(x, y, c=data['DECYZJA'],s=0.0001)
                 plt.xlabel(i)
                 plt.ylabel(j)
                 plt.show()

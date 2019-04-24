@@ -111,6 +111,10 @@ class DataGenerator(keras.utils.Sequence):
     def __getitem__(self, index):
         'Generate one batch of data'
         # Generate indexes of the batch
+        print(self.list_IDs[index], index)
+        if index>len(self.list_IDs):
+            print('FUCK')
+        print(self.list_IDs)
         X, y = self.__data_generation(self.list_IDs[index])
         return X, y
 
@@ -118,7 +122,6 @@ class DataGenerator(keras.utils.Sequence):
     def __data_generation(self, ID):
         # Generate data
         X=[]
-        print(ID)
         temp = genfromtxt(ID, delimiter=';',names=True)
         y = temp['DECYZJA']
         for x in temp:
@@ -140,7 +143,8 @@ if __name__ == '__main__':
 
     test_images=train_images[-1]
     train_images=train_images[:-1]
-    params = {'batch_size': 15,
+    print(train_images)
+    params = {'batch_size': 1,
               'n_classes': 2}
 
 
@@ -157,7 +161,7 @@ if __name__ == '__main__':
                   metrics=['accuracy'])
     print("fit model")
     model.fit_generator(generator=training_generator,
-                        validation_data=validation_generator, epochs=1)
+                        validation_data=validation_generator, epochs=1,use_multiprocessing=True,workers=0 )
     # print("test model")
     # test_images = np.load('segments/01_dr/1.npz')['arr_0']
     # test_labels=np.load('labels/01_dr/1.npz')['arr_0']
